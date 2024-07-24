@@ -1,0 +1,61 @@
+const std = @import("std");
+const Enemy = struct { level: u16, maxLife: u16, currentLife: u16, mindamage: u8, maxdamage: u8 };
+const Player = struct { level: u16, maxLife: u16, currentLife: u16, mindamage: u8, maxdamage: u8 };
+
+fn setUpPlayer() Player {
+    return Player{ .currentLife = 20, .maxLife = 20, .mindamage = 2, .maxdamage = 4, .level = 1 };
+}
+
+fn intro() void {
+    std.debug.print("Welcome to Secrets\n", .{});
+}
+
+pub fn main() !void {
+    intro();
+    var quit: bool = false;
+    const stdin = std.io.getStdIn().reader();
+    const q: []const u8 = "quit";
+    const attack: []const u8 = "attack";
+    var player: Player = setUpPlayer();
+
+    var e = Enemy{ .currentLife = 20, .maxLife = 20, .mindamage = 1, .maxdamage = 2, .level = 1 };
+    while (quit != true) {
+        std.debug.print("Enemy has {} life left\n", .{e.currentLife});
+        std.debug.print("(a)ttack\n", .{});
+        var buffer: [256]u8 = undefined;
+        const input = try stdin.readUntilDelimiterOrEof(&buffer, '\n');
+        if (input == null) {
+            std.debug.print("Exiting", .{});
+            break;
+        }
+        std.debug.print("\x1b[2J\x1b[H", .{}); // Clear screen and move cursor to home position
+
+        const user_input: []const u8 = input.?;
+        const trimmed_input: []const u8 = std.mem.trimRight(u8, user_input, "\n\r\t ");
+        std.debug.print("Choice: {s}\n", .{trimmed_input});
+
+        if (std.mem.eql(u8, trimmed_input, q)) {
+            quit = true;
+            std.debug.print("Quitting!", .{});
+        } else if (std.mem.eql(u8, trimmed_input, attack) or std.mem.eql(u8, trimmed_input, "a")) {
+            const player_damage: u8 = try getDamage(player.mindamage, player.maxdamage);
+            std.debug.print("You attack the enemy for a total of {!d} damage\n", .{player_damage});
+            e.currentLife -= player_damage;
+        }
+
+        const enemy_damage: u8 = try getDamage(e.mindamage, e.maxdamage);
+        std.debug.print("Enemy swung at you for {!d} damage\n", .{enemy_damage});
+        player.currentLife -= enemy_damage;
+
+        std.debug.print("Your life is now at {d}/{d}\n", .{ player.currentLife, player.maxLife });
+    }
+}
+
+fn getDamage(min: u8, max: u8) !u8 {
+    const range = max - min + 1;
+    var seed: u64 = undefined;
+    try std.posix.getrandom(std.mem.asBytes(&seed));
+    var random = std.Random.DefaultPrng.init(seed);
+
+    return min + (random.random().uintAtMost(u8, max) % range);
+}
