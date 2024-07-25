@@ -11,28 +11,34 @@ fn intro() void {
 }
 
 pub fn main() !void {
+    clear();
     intro();
     var quit: bool = false;
     const stdin = std.io.getStdIn().reader();
     const q: []const u8 = "quit";
     const attack: []const u8 = "attack";
+    const defend: []const u8 = "defend";
     var player: Player = setUpPlayer();
 
     var e = Enemy{ .currentLife = 20, .maxLife = 20, .mindamage = 1, .maxdamage = 2, .level = 1 };
     while (quit != true) {
         std.debug.print("Enemy has {} life left\n", .{e.currentLife});
         std.debug.print("(a)ttack\n", .{});
+        std.debug.print("(d)efend\n", .{});
+
         var buffer: [256]u8 = undefined;
         const input = try stdin.readUntilDelimiterOrEof(&buffer, '\n');
+        clear();
+
         if (input == null) {
             std.debug.print("Exiting", .{});
             break;
         }
-        std.debug.print("\x1b[2J\x1b[H", .{}); // Clear screen and move cursor to home position
 
         const user_input: []const u8 = input.?;
         const trimmed_input: []const u8 = std.mem.trimRight(u8, user_input, "\n\r\t ");
         std.debug.print("Choice: {s}\n", .{trimmed_input});
+        var block: u8 = 0;
 
         if (std.mem.eql(u8, trimmed_input, q)) {
             quit = true;
@@ -41,14 +47,24 @@ pub fn main() !void {
             const player_damage: u8 = try getDamage(player.mindamage, player.maxdamage);
             std.debug.print("You attack the enemy for a total of {!d} damage\n", .{player_damage});
             e.currentLife -= player_damage;
+        } else if (std.mem.eql(u8, trimmed_input, defend) or std.mem.eql(u8, trimmed_input, "d")) {
+            block = 1;
         }
 
         const enemy_damage: u8 = try getDamage(e.mindamage, e.maxdamage);
+
         std.debug.print("Enemy swung at you for {!d} damage\n", .{enemy_damage});
-        player.currentLife -= enemy_damage;
+        if (block > 0) {
+            std.debug.print("You blocked {} damage\n", .{block});
+        }
+        player.currentLife -= enemy_damage - block;
 
         std.debug.print("Your life is now at {d}/{d}\n", .{ player.currentLife, player.maxLife });
     }
+}
+
+fn clear() void {
+    std.debug.print("\x1b[2J\x1b[H", .{}); // Clear screen and move cursor to home position
 }
 
 fn getDamage(min: u8, max: u8) !u8 {
