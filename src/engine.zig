@@ -1,6 +1,7 @@
 const std = @import("std");
 const Graphics = @import("graphics.zig").Graphics;
 const Input = @import("input.zig").Input;
+const rl = @import("raylib");
 
 pub const Engine = struct {
     gfx: Graphics,
@@ -25,7 +26,6 @@ pub const Engine = struct {
             try self.input.pollEvents();
             self.update();
             self.render();
-            std.time.sleep(16 * std.time.ns_per_ms); // Approximate 60 FPS
         }
     }
 

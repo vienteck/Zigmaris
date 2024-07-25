@@ -1,18 +1,14 @@
 const std = @import("std");
+const ScreenManager = @import("screens.zig");
 
 pub const Graphics = struct {
-    screen: Screen,
+    screen: ScreenManager.Screen,
     screen_selection: u8,
-
-    const Screen = enum {
-        TitleScreen,
-        BattleScene,
-    };
 
     pub fn init() !Graphics {
         // Initialize graphics context
         return Graphics{
-            .screen = .TitleScreen,
+            .screen = ScreenManager.Screen.TitleScreen,
             .screen_selection = 0,
         };
     }
@@ -24,15 +20,15 @@ pub const Graphics = struct {
 
     pub fn clear(self: *Graphics) void {
         // Clear the screen
-        _ = self;
         std.debug.print("\x1b[2J\x1b[H", .{}); // Clear screen and move cursor to home position
+        _ = self;
     }
 
     pub fn present(self: *Graphics) void {
         // Present the rendered frame
         //
         switch (self.screen) {
-            Screen.TitleScreen => TitleScreen(0),
+            ScreenManager.Screen.TitleScreen => TitleScreen(0),
             else => std.debug.print("Unknown state", .{}),
         }
     }
