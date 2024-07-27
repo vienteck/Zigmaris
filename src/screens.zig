@@ -5,6 +5,9 @@ const rl = @import("libs/raylib-zig/raylib.zig");
 
 pub const ScreenManager = struct {
     currentScreen: Screen,
+    var x: i32 = 0;
+    var y: i32 = 0;
+    var timer: i32 = 0;
 
     pub const Screen = enum {
         TitleScreen,
@@ -29,32 +32,46 @@ pub const ScreenManager = struct {
 
         const size = 5;
 
-        const buttonWidth: i32 = 50;
-        const buttonHeight: i32 = 50;
-
+        const buttonWidth: i32 = @divExact(rl.getRenderWidth(), 5);
+        const buttonHeight: i32 = @divExact(rl.getRenderHeight(), 5);
+        std.debug.print("bwidth {} bheight {}\n", .{ buttonWidth, buttonHeight });
         //define button collors
         const buttonColor = rl.Color.light_gray;
         const textColor = rl.Color.black;
 
         rl.beginDrawing();
         defer rl.endDrawing();
+        std.debug.print("Timer: {} x{} y{}\n", .{ timer, x, y });
+        const maxValue: i32 = 61;
 
+        timer = @mod((timer + 1), maxValue);
+        if (timer > 59) {
+            if (x + 1 == 5) {
+                y = @mod(y + 1, 5);
+            }
+            x = @mod(x + 1, 5);
+        }
         rl.clearBackground(rl.Color.white);
-        std.debug.print("renderHeight: {}\n", .{rl.getRenderHeight()});
         for (0..size) |row| {
             for (0..size) |col| {
                 const r: i32 = @intCast(row);
                 const c: i32 = @intCast(col);
-                const posX: i32 = c * 50;
-                const posY: i32 = c * r * 50;
+                const posX: i32 = c * buttonWidth;
+                const posY: i32 = r * buttonHeight;
+                std.debug.print("row {} col: {} posX: {} posY: {}\n", .{ row, col, posX, posY });
                 const buttonRect = rl.Rectangle{
                     .x = @floatFromInt(posX),
                     .y = @floatFromInt(posY),
-                    .width = buttonWidth,
-                    .height = buttonHeight,
+                    .width = @floatFromInt(buttonWidth),
+                    .height = @floatFromInt(buttonHeight),
                 };
 
-                rl.drawRectangleRec(buttonRect, buttonColor);
+                if (r == y and c == x) {
+                    rl.drawRectangleRec(buttonRect, buttonColor);
+                } else {
+                    rl.drawRectangleRec(buttonRect, rl.Color.white);
+                }
+
                 const textWidth = rl.measureText("Box", 20);
                 rl.drawText("Box", posX + @divTrunc(buttonWidth, 2) - @divTrunc(textWidth, 2), posY + @divTrunc(buttonHeight, 2) - 10, 20, textColor);
             }
