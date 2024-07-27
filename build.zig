@@ -15,20 +15,6 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const raylibzig = b.addStaticLibrary(.{
-        .name = "raylib-zig",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
-        .root_source_file = b.path("libs/raylib-zig/raylib.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    // This declares intent for the library to be installed into the standard
-    // location when the user invokes the "install" step (the default step when
-    // running `zig build`).
-    b.installArtifact(raylibzig);
-
     const exe = b.addExecutable(.{
         .name = "game",
         .root_source_file = b.path("src/main.zig"),
@@ -36,12 +22,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    //expose the raylib module to be imported
-    const raylib = b.createModule(.{
-        .root_source_file = .{ .cwd_relative = "libs/raylib-zig/raylib.zig" },
-    });
+    //NOT ADDING MODULES BECAUSE NO AUTOCOMPLETE SUPPORT. MOVED ZIG BINDINGS TO SRC
+    // const rl_ext = b.addModule("raylib", .{ .root_source_file = b.path("libs/raylib-zig/raylib-ext.zig") });
 
-    exe.root_module.addImport("raylib", raylib);
+    // exe.root_module.addImport("raylib", rl);
+    // exe.root_module.addImport("raylib-ext", rl_ext);
 
     exe.addIncludePath(.{ .cwd_relative = "libs/raylib/include" });
 

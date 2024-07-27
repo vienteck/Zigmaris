@@ -1,8 +1,8 @@
 const std = @import("std");
 const Graphics = @import("graphics.zig").Graphics;
 const Input = @import("input.zig").Input;
-const rl = @import("raylib");
 
+const rl = @import("libs/raylib-zig/raylib.zig");
 pub const Engine = struct {
     gfx: Graphics,
     input: Input,
@@ -21,18 +21,7 @@ pub const Engine = struct {
 
     pub fn run(self: *Engine) !void {
         self.gfx.clear();
-        // Initialization
-        //--------------------------------------------------------------------------------------
-        const screenWidth = 800;
-        const screenHeight = 450;
-
-        rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
-        defer rl.closeWindow(); // Close window and OpenGL context
-
-        rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
-        //--------------------------------------------------------------------------------------
-
-        // Main game loop
+        // Render game
         while (!rl.windowShouldClose()) { // Detect window close button or ESC key
             // Update
             //----------------------------------------------------------------------------------
@@ -41,19 +30,9 @@ pub const Engine = struct {
 
             // Draw
             //----------------------------------------------------------------------------------
-            rl.beginDrawing();
-            defer rl.endDrawing();
-
-            rl.clearBackground(rl.Color.white);
-
-            rl.drawText("Congrats! You created your first window!", 190, 200, 20, rl.Color.light_gray);
-            //----------------------------------------------------------------------------------
+            self.update();
+            self.render();
         }
-        // while (true) {
-        //     try self.input.pollEvents();
-        //     self.update();
-        //     self.render();
-        // }
     }
 
     fn update(self: *Engine) void {
@@ -63,7 +42,6 @@ pub const Engine = struct {
 
     fn render(self: *Engine) void {
         self.gfx.clear();
-        // Render game
         self.gfx.present();
     }
 };

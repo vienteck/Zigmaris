@@ -1,15 +1,21 @@
 const std = @import("std");
-const ScreenManager = @import("screens.zig");
+const ScreenManager = @import("screens.zig").ScreenManager;
+const rl = @import("libs/raylib-zig/raylib.zig");
 
 pub const Graphics = struct {
-    screen: ScreenManager.Screen,
-    screen_selection: u8,
+    sm: ScreenManager,
+    var screenWidth: i32 = 800;
+    var screenHeight: i32 = 450;
 
     pub fn init() !Graphics {
-        // Initialize graphics context
+        // screenWidth = rl.getMonitorWidth(0);
+        // screenHeight = rl.getMonitorHeight(0);
+
+        rl.initWindow(screenWidth, screenHeight, "Zigmaris");
+        rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
+
         return Graphics{
-            .screen = ScreenManager.Screen.TitleScreen,
-            .screen_selection = 0,
+            .sm = ScreenManager.init(),
         };
     }
 
@@ -26,43 +32,15 @@ pub const Graphics = struct {
 
     pub fn present(self: *Graphics) void {
         // Present the rendered frame
-        //
-        switch (self.screen) {
-            ScreenManager.Screen.TitleScreen => TitleScreen(0),
+        std.debug.print("Widht {} Height {}\n", .{ screenWidth, screenHeight });
+        switch (self.sm.currentScreen) {
+            ScreenManager.Screen.NewGame => ScreenManager.NewGame(self),
+            ScreenManager.Screen.TitleScreen => ScreenManager.TitleScreen(self),
+            ScreenManager.Screen.OptionsScreen => ScreenManager.Options(self),
             else => std.debug.print("Unknown state", .{}),
         }
     }
 };
-
-fn TitleScreen(selection: i8) void {
-    // if (selection < 0) {
-    //     selection = 0;
-    // } else if (selection > 2) {
-    //     selection = 2;
-    // }
-    std.debug.print("This is the title Screen\n", .{});
-    var text: []const u8 = "New Game\n";
-    if (selection == 0) {
-        encase(text);
-    } else {
-        std.debug.print("{s}", .{text});
-    }
-
-    text = "Continue\n";
-    if (selection == 1) {
-        encase(text);
-    } else {
-        std.debug.print("{s}", .{text});
-    }
-
-    text = "Quit\n";
-    if (selection == 2) {
-        encase(text);
-    } else {
-        std.debug.print("{s}", .{text});
-    }
-}
-
 fn encase(msg: []const u8) void {
     std.debug.print("->{s}", .{msg});
 }
